@@ -27,7 +27,7 @@ C# 中的運算子非常多，在此處我們專注於有關數學計算的部�
 `++x`、`--x`、`x++`、`x--`... | 一元
 `x * y`、`x / y`、`x % y` | 乘除
 `x + y`、`x - y` | 加減
-`x << y`、`x >> y` | 移位
+`x << y`、`x >> y`... | 移位
 ... | ...
 `x = y`、`x += y`、`x -= y`... | 指派
 
@@ -35,7 +35,7 @@ C# 中的運算子非常多，在此處我們專注於有關數學計算的部�
 
 ### 指派，尤其是複合指派
 
-我們可以發現指派運算子的優先度是最低的，所以很顯然，我們最後需要關注的應該是等號右邊的運算式。但是先等一下，對於類如 `+=`、`-=` 這種[複合指派](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/bitwise-and-shift-operators#compound-assignment)算子而言情況有些特別，我們根據文件可以了解到：
+我們可以發現指派運算子的優先度是最低的，所以很顯然，我們最先需要關注的應該是等號右邊的運算式。但是先等一下，對於類如 `+=`、`-=` 這種[複合指派](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/bitwise-and-shift-operators#compound-assignment)算子而言情況有些特別，我們根據文件可以了解到：
 
 > `x op= y` 相當於 `x = x op y`，但 `x` 只會評估一次。
 
@@ -78,7 +78,7 @@ x = (x) + (++x + x++);
 
 在 C# 中，運算子優先順序與運算子的[關聯性](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/#operator-associativity)是不同的，運算式中的括號會明確關聯性而並不會改變優先順序。
 
-更重要的一點是運算元的[評估順序](https://learn.microsoft.com/zh-tw/dotnet/csharp/language-reference/operators/#operand-evaluation)，這與前兩者都無關，運算式中的運算元會**由左至右評估**而不受它們的影響。
+更重要的一點是運算元的[評估順序](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/#operand-evaluation)，這與前兩者都無關，運算式中的運算元會**由左至右評估**而不受它們的影響。
 
 也就是說，雖然對於 `a + (b * c)` 與 `(a + b) * c` 來說，它們的整體評估順序是不同的，但運算元評估順序會是相同的。
 
@@ -95,7 +95,7 @@ x = (x) + (++x + x++);
 這裡有個案例說明兩者的不同：
 
 ```cs
-// a 在此處只是為了列印結果，沒有副作用。
+// a 在此處只是為了列印結果，沒有副作用
 Int32 a;
 // 自訂的資料來源
 MyNumber m;
@@ -231,7 +231,7 @@ n = 4;
 (x) + (++x + x++);
 ```
 
-從表達式的評估規則中我們可以知道，對於該表達式，我們會首先從左至右評估運算元，我們將其暫時分別標記為 `x_n`。
+從表達式的評估規則中我們可以知道，對於該表達式會首先從左至右評估運算元。我們將不同的 `n` 暫時分別標記為 `x_n`。
 
 ```cs
 (x_1) + (++x_2 + x_3++);
@@ -338,6 +338,6 @@ int main() {
 
 ## 鳴謝
 
-我在很早之前就出於興趣對 C# 與 C/C++ 中的複雜運算式有興趣，不過 [Jerry Nixon](https://jerrynixon.com) 的[一則推文](https://twitter.com/jerrynixon/status/1599887244453908480)使我擁有了撰寫本文的動力。
+我在很早之前就出於興趣對 C# 與 C/C++ 中的複雜運算式有所了解，不過 [Jerry Nixon](https://twitter.com/jerrynixon) 的[一則推文](https://twitter.com/jerrynixon/status/1599887244453908480)使我擁有了撰寫本文的動力。
 
 此外 [SharpLab](https://sharplab.io/) 與 [godbolt](https://godbolt.org/) 提供了強大的工具以讓我可以輕鬆地在不同環境中測試。
