@@ -1,5 +1,7 @@
 # C# 中複雜運算子和運算式
 
+[![en-US](https://img.shields.io/badge/lang-en--US-brightgreen)](../en-US) [![en-US](https://img.shields.io/badge/lang-zh--TW-brightgreen)](../zh-TW)
+
 有這樣一個有趣的問題：
 
 > 下列表達式中的 `x` 在最終會是多少？
