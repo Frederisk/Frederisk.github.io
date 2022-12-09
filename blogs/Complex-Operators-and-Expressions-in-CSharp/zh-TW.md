@@ -152,6 +152,90 @@ Console.WriteLine(a);
 
 當然，實際上 `Number` 屬性還是評估了兩次。我們只是用了一些技巧，也就是臨時變數，來讓關鍵的部分只評估一次。
 
+> 雖然在某些情況下 `x = (x) op (y)` 與 `x op= y` 並不相等。不過事實上編譯器很聰明，它會在相等的場合自動幫你轉化為相對低開銷的方式。
+>
+> ```c
+> // x += ++x + x++;
+> // x = x + (++x + x++);
+> // 在此例中等價，所以後者會在編譯中轉換為前者
+>
+> // 編譯結果 x x ++_ x _++ + + =
+>
+> // x
+> IL_0002: ldloc.0
+> // x
+> IL_0003: ldloc.0
+> // ++_
+> IL_0004: ldc.i4.1
+> IL_0005: add
+> IL_0006: dup
+> IL_0007: stloc.0
+> // x
+> IL_0008: ldloc.0
+> // _++
+> IL_0009: dup
+> IL_000a: ldc.i4.1
+> IL_000b: add
+> IL_000c: stloc.0
+> // +
+> IL_000d: add
+> // +
+> IL_000e: add
+> // =
+> IL_000f: stloc.0
+> ```
+>
+> 在上面不等價的情況下，只評估一次的功能實際上這是透過複製（duplicate）堆疊的值來實現的，也就是複製目標物件的位置。
+>
+> ```c
+> // m.GetNumber().Number += 1;
+>
+> // 編譯結果 GetNumber() dup .Number 1 + =
+> //             ^-------^-----^--------^
+>
+> // GetNumber()
+> IL_0007: ldloc.0
+> IL_0008: callvirt instance class MyNumber MyNumber::GetNumber()
+> // duplicate GetNumber() value
+> IL_000d: dup
+> // .Number
+> IL_000e: callvirt instance int32 MyNumber::get_Number()
+> // 1
+> IL_0013: ldc.i4.1
+> // +
+> IL_0014: add
+> // .Number =
+> IL_0015: callvirt instance void MyNumber::set_Number(int32)
+> IL_001a: nop
+> ```
+>
+> 另一個：
+>
+> ```c
+> // m.GetNumber().Number = m.GetNumber().Number + 1;
+>
+> // 編譯結果 GetNumber() GetNumber() .Number 1 + =
+> //             ^           ^---------^        ^
+> //             |----------------------------- |
+>
+> // GetNumber()
+> IL_0007: ldloc.0
+> IL_0008: callvirt instance class MyNumber
+> // GetNumber()
+> MyNumber::GetNumber()
+> IL_000d: ldloc.0
+> IL_000e: callvirt instance class MyNumber MyNumber::GetNumber()
+> // .Number
+> IL_0013: callvirt instance int32 MyNumber::get_Number()
+> // 1
+> IL_0018: ldc.i4.1
+> // +
+> IL_0019: add
+> // .Number =
+> IL_001a: callvirt instance void MyNumber::set_Number(int32)
+> IL_001f: nop
+> ```
+
 ### 複雜運算式中的遞增、遞減運算子
 
 相信你已經了解遞增、遞減運算子的[具體行為](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/arithmetic-operators#increment-operator-)，所以在此處我們直接從結論開始。以遞增運算子為例，我們可以知道：

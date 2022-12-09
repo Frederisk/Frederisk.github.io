@@ -155,6 +155,90 @@ Console.WriteLine(a);
 
 In fact, the `Number` property is still evaluated twice. We just use some tricks, namely temporary variables, to make critical parts evaluated only once.
 
+> Although in some cases, `x = (x) OP (y)` is not equal to `x op = y`. However, the compiler is very clever, and it will automatically convert you into a relatively low-cost way in equal occasions.
+>
+> ```c
+> // x += ++x + x++;
+> // x = x + (++x + x++);
+> // in this case, the effect is equivalent, so the latter will be compiled to convert to the former
+>
+> // results: x x ++_ x _++ + + =
+>
+> // x
+> IL_0002: ldloc.0
+> // x
+> IL_0003: ldloc.0
+> // ++_
+> IL_0004: ldc.i4.1
+> IL_0005: add
+> IL_0006: dup
+> IL_0007: stloc.0
+> // x
+> IL_0008: ldloc.0
+> // _++
+> IL_0009: dup
+> IL_000a: ldc.i4.1
+> IL_000b: add
+> IL_000c: stloc.0
+> // +
+> IL_000d: add
+> // +
+> IL_000e: add
+> // =
+> IL_000f: stloc.0
+> ```
+>
+> In the case where the above their effects is not equivalent, the function of only evaluating once is actually achieved by duplicating the value of stack, that is, the address of the target object.
+>
+> ```c
+> // m.GetNumber().Number += 1;
+>
+> // results: GetNumber() dup .Number 1 + =
+> //               ^-------^-----^--------^
+>
+> // GetNumber()
+> IL_0007: ldloc.0
+> IL_0008: callvirt instance class MyNumber MyNumber::GetNumber()
+> // duplicate GetNumber() value
+> IL_000d: dup
+> // .Number
+> IL_000e: callvirt instance int32 MyNumber::get_Number()
+> // 1
+> IL_0013: ldc.i4.1
+> // +
+> IL_0014: add
+> // .Number =
+> IL_0015: callvirt instance void MyNumber::set_Number(int32)
+> IL_001a: nop
+> ```
+>
+> The other:
+>
+> ```c
+> // m.GetNumber().Number = m.GetNumber().Number + 1;
+>
+> // results: GetNumber() GetNumber() .Number 1 + =
+> //               ^           ^---------^        ^
+> //               |----------------------------- |
+>
+> // GetNumber()
+> IL_0007: ldloc.0
+> IL_0008: callvirt instance class MyNumber
+> // GetNumber()
+> MyNumber::GetNumber()
+> IL_000d: ldloc.0
+> IL_000e: callvirt instance class MyNumber MyNumber::GetNumber()
+> // .Number
+> IL_0013: callvirt instance int32 MyNumber::get_Number()
+> // 1
+> IL_0018: ldc.i4.1
+> // +
+> IL_0019: add
+> // .Number =
+> IL_001a: callvirt instance void MyNumber::set_Number(int32)
+> IL_001f: nop
+> ```
+
 ### Increment and decrement operators in complex expressions
 
 I believe you already understand the specific behavior of increment and decrement operators, so here we start directly from the conclusion. Taking the increment operator as an example, we can know:
