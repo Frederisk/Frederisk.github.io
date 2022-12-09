@@ -159,7 +159,7 @@ _ = n++;
 // 類似於
 _ = {return n, then let n = n + 1};
 
-_ = n++;
+_ = ++n;
 // 類似於
 _ = {let n = n + 1, then return n};
 ```
@@ -314,6 +314,38 @@ x = (3 * x) + 2;
 ```cs
 public Int32 hackAdd(Int32 x) => normalAdd(x);
 public Int32 normalAdd(Int32 x) => (3 * x) + 2;
+```
+
+另一個更複雜的例子：
+
+```cs
+public Int32 hackSub(Int32 x) {
+  x += ++x - x-- * x++;
+  return x;
+}
+```
+
+同樣：
+
+```cs
+// Int32 x = (x);
+
+x += ++x - x-- * x++; // x = (x)
+x = (x) + (++x - x-- * x++); // x = (x)
+x = x + (++x - x-- * x++); // x = (x)
+x = x + ((x+1) - x-- * x++); // x = (x+1)
+x = x + ((x+1) - (x+1) * x++); // x = (x)
+x = x + ((x+1) - (x+1) * x); // x = (x+1)
+x = x + x + 1 - (x + 1) * x;
+x = x + x + 1 - (x * x) - x;
+x = x - (x * x) + 1;
+
+// return x
+```
+
+```cs
+public Int32 hackSub(Int32 x) => normalSub(x);
+public Int32 normalSub(Int32 x) => x - (x * x) + 1;
 ```
 
 ### 在 C/C++ 中的此類運算式
