@@ -85,6 +85,7 @@ The more important point is the [evaluation order of the operands](https://learn
 That is, while the overall order of evaluation is different for a + (b *c) versus (a + b)* c, the order of evaluation of the operands will be the same.
 
 Expression | Order of evaluation | Order of evaluation of operands
+--- | --- | ---
 `a = b` | `a` `b` `=` | `a` `b`
 `a + (b * c)` | `a` `b` `c` `*` `+` | `a` `b` `c`
 `(a + b) * c` | `a` `b` `+` `c` `*` | `a` `b` `c`
