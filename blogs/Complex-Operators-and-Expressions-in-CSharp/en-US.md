@@ -1,6 +1,6 @@
 # Complex operators and expressions in C#(CSharp)
 
-[![en-US](https://img.shields.io/badge/lang-en--US-brightgreen)](./en-US) [![en-US](https://img.shields.io/badge/lang-zh--TW-brightgreen)](./zh-TW)
+[![en-US](https://img.shields.io/badge/lang-en--US-brightgreen)](./en-US) [![zh-TW](https://img.shields.io/badge/lang-zh--TW-brightgreen)](./zh-TW)
 
 There is an interesting question:
 
