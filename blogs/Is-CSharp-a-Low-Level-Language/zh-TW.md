@@ -1,6 +1,6 @@
 # C#是低階語言嗎？
 
-[![en-US-Source](https://img.shields.io/badge/lang-en--US--Source-blue)](https://mattwarren.org/2019/03/01/Is-CSharp-a-low-level-language/)[![zh-TW](https://img.shields.io/badge/lang-zh--TW--40%-yellow)](./zh-TW)
+[![en-US-Source](https://img.shields.io/badge/lang-en--US--Source-blue)](https://mattwarren.org/2019/03/01/Is-CSharp-a-low-level-language/)[![zh-TW](https://img.shields.io/badge/lang-zh--TW--55%-yellow)](./zh-TW)
 
 我是 [Fabien Sanglard](http://fabiensanglard.net/) 所做一切的忠實粉絲，我喜歡他的部落格並且從頭到尾讀了他的[兩本](http://fabiensanglard.net/gebbdoom/index.html)[著作](http://fabiensanglard.net/gebbwolf3d/index.html)（對於他的書的更多資訊，可以參考最近的 [Hansleminutes podcast](https://hanselminutes.com/666/episode-666-game-engine-black-book-doom-with-fabien-sanglard)）。
 
@@ -92,9 +92,231 @@
 
 無論如何，即便已經使用了「原生」逐行移植，但讓我們先看看 .NET JIT 為我們做了甚麼。首先，它在內嵌較小的「輔助方法」上做得很好，我們可以透過查看優秀的內嵌分析工具的輸出看到這一點（綠色覆蓋的=內嵌的）：
 
-![QueryDatabase 的內嵌分析工具](./assets/Inlining-Analyzer-QueryDatabase.png)
+![QueryDatabase 的內嵌分析](./assets/Inlining-Analyzer-QueryDatabase.png)
 
 不過不是所有方法都內嵌了，比如 `QueryDatabase(..)` 就因為過於複雜而跳過了：
 
-![](./assets/Inlining-Analyzer-RayMarching-with-ToolTip.png)
+![RayMarching 的內嵌分析與工具提示](./assets/Inlining-Analyzer-RayMarching-with-ToolTip.png)
 
+另一個由 .NET 及時（JIT）編譯器所提供的特性是將特定方法的呼叫轉換為相應的 CPU 指令。我們可以透過 `sqrt` 包裝函式注意到這點，這是原始的 C# 程式碼（注意對 `Math.Sqrt` 的呼叫）：
+
+```csharp
+// intnv square root
+public static Vec operator !(Vec q) {
+  return q * (1.0f / (float)Math.Sqrt(q % q));
+}
+```
+
+然後是 .NET JIT 產生的組合語言程式碼，可以看到並沒有呼叫 `Math.Sqrt` 並且其使用了 `vsqrtsd` CPU 指令：
+
+```nasm
+; Assembly listing for method Program:sqrtf(float):float
+; Emitting BLENDED_CODE for X64 CPU with AVX - Windows
+; Tier-1 compilation
+; optimized code
+; rsp based frame
+; partially interruptible
+; Final local variable assignments
+;
+;  V00 arg0         [V00,T00] (  3,  3   )   float  ->  mm0
+;# V01 OutArgs      [V01    ] (  1,  1   )  lclBlk ( 0) [rsp+0x00]   "OutgoingArgSpace"
+;
+; Lcl frame size = 0
+
+G_M8216_IG01:
+       vzeroupper
+
+G_M8216_IG02:
+       vcvtss2sd xmm0, xmm0
+       vsqrtsd  xmm0, xmm0
+       vcvtsd2ss xmm0, xmm0
+
+G_M8216_IG03:
+       ret
+
+; Total bytes of code 16, prolog size 3 for method Program:sqrtf(float):float
+; ============================================================
+```
+
+（你可以使用「Disasmo」VS2019 增益功能透過這些說明來獲得這些輸出，或者去 SharpLab.io 查看）
+
+這種替換也稱為「內在（intrinsic）」，我們可以在下列的程式碼中看到 JIT 對它們的生成。這個片段只展示了對 `AMD64` 的映射。除此以外對於 `X86`、`ARM` 與 `ARM64`，JIT 對於這些也有對應目標，完整的方法可以參看此處。
+
+```cpp
+bool Compiler::IsTargetIntrinsic(CorInfoIntrinsics intrinsicId)
+{
+#if defined(_TARGET_AMD64_) || (defined(_TARGET_X86_) && !defined(LEGACY_BACKEND))
+  switch (intrinsicId)
+  {
+    // AMD64/x86 has SSE2 instructions to directly compute sqrt/abs and SSE4.1
+    // instructions to directly compute round/ceiling/floor.
+    //
+    // TODO: Because the x86 backend only targets SSE for floating-point code,
+    //       it does not treat Sine, Cosine, or Round as intrinsics (JIT32
+    //       implemented those intrinsics as x87 instructions). If this poses
+    //       a CQ problem, it may be necessary to change the implementation of
+    //       the helper calls to decrease call overhead or switch back to the
+    //       x87 instructions. This is tracked by #7097.
+    case CORINFO_INTRINSIC_Sqrt:
+    case CORINFO_INTRINSIC_Abs:
+      return true;
+
+    case CORINFO_INTRINSIC_Round:
+    case CORINFO_INTRINSIC_Ceiling:
+    case CORINFO_INTRINSIC_Floor:
+      return compSupports(InstructionSet_SSE41);
+
+    default:
+      return false;
+  }
+  ...
+}
+```
+
+正如你所建，某些方法會是像這樣實作的，例如 Sqrt 和 Abs，但對於其他的比如 `powf`，CLR 則會取代使用 C++ 執行期函式來實作。
+
+這整個過程在《.NET Framework 是如何實作 Math.Pow 的?》中有很好的解釋，不過我們也可以在 CoreCLR 來源中看到這是如何運作的：
+
+- `COMSingle::Pow` 實作，比如從 C# 程式碼中呼叫 `MathF.Pow(..)` 時執行的方法
+- 映射至 C 執行期方法實作
+- `powf` 跨平台版本實作，這確保了跨越系統時程式會有相同的行為
+
+### 簡單對效能改進後的成果
+
+我想說看看我的「原生」逐行移植有沒有改進空間，在一番分析後我做出了兩個主要改變：
+
+- 移除行內陣列初始化
+- 將 `Math.XXX(..)` 切換為 `MathF.XXX()` 的對應函式
+
+接下來將深入解釋這些變化
+
+#### 移除行內陣列初始化
+
+關於為何需要這樣做的更多資訊，可參閱這篇由 Andrey Akinshin 在 Stack Overflow 所做出的優秀回答，並且其中還包括基準測試和組合語言程式碼！其得到的結論如下：
+
+> #### 結論
+>
+> **.NET 會快取硬編碼的局部陣列嗎？**大體上算是：Roslyn編譯器會將其放入元資料中。
+>
+> **在這種情形下我們是否會有任何額外開銷？**很不幸，會有：JIT會在每次引動時從元資料中拷貝字串的內容。這種方式的工作時間比起靜態陣列來說更長。執行期也會分配物件並產生記憶體流量。
+>
+> **我們應當關心這點嗎？** 這取決於具體情形。如果這是個熱方法，並且你想要取得優良的效能，你應該使用靜態陣列。如果這是個不會影響應用程式的冷方法，此時你應該做的是寫出「良好的」程式碼，並將陣列放在方法的作用區域之中。
+
+你可以在此差異中看到我所做出的變更。
+
+#### 用 MathF 函式替換 Math
+
+之後但很重要的是，我透過以下變更獲得了很大的效能提升：
+
+```cs
+#if NETSTANDARD2_1 || NETCOREAPP2_0 || NETCOREAPP2_1 || NETCOREAPP2_2 || NETCOREAPP3_0
+  // intnv square root
+  public static Vec operator !(Vec q) {
+    return q * (1.0f / MathF.Sqrt(q % q));
+  }
+#else
+  public static Vec operator !(Vec q) {
+    return q * (1.0f / (float)Math.Sqrt(q % q));
+  }
+#endif
+```
+
+自「.NET Standard 2.1」起，常見的數學函式現在都有了其特定的 `float` 實作並位於 `System.MathF` 類別中。對於此 API 及其實作的更多資料可參見：
+
+New API for single-precision math
+Adding single-precision math functions
+Provide a set of unit tests over the new single-precision math APIs
+System.Math and System.MathF should be implemented in managed code, rather than as FCALLs to the C runtime
+Moving Math.Abs(double) and Math.Abs(float) to be implemented in managed code.
+Design and process for adding platform dependent intrinsics to .NET
+
+After these changes, the C# code is ~10% slower than the C++ version:
+
+	C++ (VS C++ 2017)	.NET Framework (4.7.2)	.NET Core (2.2) TC OFF	.NET Core (2.2) TC ON
+Elapsed time (secs)	41.38	58.89	46.04	44.33
+Kernel time	0.05 (0.1%)	0.06 (0.1%)	0.14 (0.3%)	0.13 (0.3%)
+User time	41.19 (99.5%)	58.34 (99.1%)	44.72 (97.1%)	44.03 (99.3%)
+page fault #	1,119	4,749	5,776	5,661
+Working set (KB)	4,136	13,440	16,788	16,652
+Paged pool (KB)	89	172	150	150
+Non-paged pool	7	13	16	16
+Page file size (KB)	1,428	10,904	10,960	11,044
+TC = Tiered Compilation (I believe that it’ll be on by default in .NET Core 3.0)
+
+For completeness, here’s the results across several runs:
+
+Run	C++ (VS C++ 2017)	.NET Framework (4.7.2)	.NET Core (2.2) TC OFF	.NET Core (2.2) TC ON
+TestRun-01	41.38	58.89	46.04	44.33
+TestRun-02	41.19	57.65	46.23	45.96
+TestRun-03	42.17	62.64	46.22	48.73
+Note: the difference between .NET Core and .NET Framework is due to the lack of the MathF API in .NET Framework v4.7.2, for more info see Support .Net Framework (4.8?) for netstandard 2.1.
+
+Further performance improvements
+However I’m sure that others can do better!
+
+If you’re interested in trying to close the gap the C# code is available. For comparison, you can see the assembly produced by the C++ compiler courtesy of the brilliant Compiler Explorer.
+
+Finally, if it helps, here’s the output from the Visual Studio Profiler showing the ‘hot path’ (after the perf improvement described above):
+
+
+Call Tree (tidied up) - Report20190221-2029-After-MathF-Changes-NetCore.png
+
+Is C# a low-level language?
+Or more specifically:
+
+What language features of C#/F#/VB.NET or BCL/Runtime functionality enable ‘low-level’* programming?
+
+* yes, I know ‘low-level’ is a subjective term 😊
+
+Note: Any C# developer is going to have a different idea of what ‘low-level’ means, these features would be taken for granted by C++ or Rust programmers.
+
+Here’s the list that I came up with:
+
+ref returns and ref locals
+“tl;dr Pass and return by reference to avoid large struct copying. It’s type and memory safe. It can be even faster than unsafe!”
+Unsafe code in .NET
+“The core C# language, as defined in the preceding chapters, differs notably from C and C++ in its omission of pointers as a data type. Instead, C# provides references and the ability to create objects that are managed by a garbage collector. This design, coupled with other features, makes C# a much safer language than C or C++.”
+Managed pointers in .NET
+“There is, however, another pointer type in CLR – a managed pointer. It could be defined as a more general type of reference, which may point to other locations than just the beginning of an object.”
+C# 7 Series, Part 10: Span<T> and universal memory management
+“System.Span<T> is a stack-only type (ref struct) that wraps all memory access patterns, it is the type for universal contiguous memory access. You can think the implementation of the Span contains a dummy reference and a length, accepting all 3 memory access types."
+Interoperability (C# Programming Guide)
+“The .NET Framework enables interoperability with unmanaged code through platform invoke services, the System.Runtime.InteropServices namespace, C++ interoperability, and COM interoperability (COM interop).”
+However, I know my limitations and so I asked on twitter and got a lot more replies to add to the list:
+
+Ben Adams “Platform intrinsics (CPU instruction access)”
+Marc Gravell “SIMD via Vector (which mixes well with Span) is *fairly* low; .NET Core should (soon?) offer direct CPU intrinsics for more explicit usage targeting particular CPU ops"
+Marc Gravell “powerful JIT: things like range elision on arrays/spans, and the JIT using per-struct-T rules to remove huge chunks of code that it knows can’t be reached for that T, or on your particular CPU (BitConverter.IsLittleEndian, Vector.IsHardwareAccelerated, etc)”
+Kevin Jones “I would give a special shout-out to the MemoryMarshal and Unsafe classes, and probably a few other things in the System.Runtime.CompilerServices namespace.”
+Theodoros Chatzigiannakis “You could also include __makeref and the rest.”
+damageboy “Being able to dynamically generate code that fits the expected input exactly, given that the latter will only be known at runtime, and might change periodically?”
+Robert Haken “dynamic IL emission”
+Victor Baybekov “Stackalloc was not mentioned. Also ability to write raw IL (not dynamic, so save on a delegate call), e.g. to use cached ldftn and call them via calli. VS2017 has a proj template that makes this trivial via extern methods + MethodImplOptions.ForwardRef + ilasm.exe rewrite.”
+Victor Baybekov “Also MethodImplOptions.AggressiveInlining “does enable ‘low-level’ programming” in a sense that it allows to write high-level code with many small methods and still control JIT behavior to get optimized result. Otherwise uncomposable 100s LOCs methods with copy-paste…”
+Ben Adams “Using the same calling conventions (ABI) as the underlying platform and p/invokes for interop might be more of a thing though?”
+Victor Baybekov “Also since you mentioned #fsharp - it does have inline keyword that does the job at IL level before JIT, so it was deemed important at the language level. C# lacks this (so far) for lambdas which are always virtual calls and workarounds are often weird (constrained generics).”
+Alexandre Mutel “new SIMD intrinsics, Unsafe Utility class/IL post processing (e.g custom, Fody…etc.). For C#8.0, upcoming function pointers…”
+Alexandre Mutel “related to IL, F# has support for direct IL within the language for example”
+OmariO “BinaryPrimitives. Low-level but safe.” (https://docs.microsoft.com/en-us/dotnet/api/system.buffers.binary.binaryprimitives?view=netcore-3.0)
+Kouji (Kozy) Matsui “How about native inline assembler? It’s difficult for how relation both toolchains and runtime, but can replace current P/Invoke solution and do inlining if we have it.”
+Frank A. Krueger “Ldobj, stobj, initobj, initblk, cpyblk.”
+Konrad Kokosa “Maybe Thread Local Storage? Fixed Size Buffers? unmanaged constraint and blittable types should be probably mentioned:)”
+Sebastiano Mandalà “Just my two cents as everything has been said: what about something as simple as struct layout and how padding and memory alignment and order of the fields may affect the cache line performance? It’s something I have to investigate myself too”
+Nino Floris “Constants embedding via readonlyspan, stackalloc, finalizers, WeakReference, open delegates, MethodImplOptions, MemoryBarriers, TypedReference, varargs, SIMD, Unsafe.AsRef can coerce struct types if layout matches exactly (used for a.o. TaskAwaiter and its version)"
+So in summary, I would say that C# certainly lets you write code that looks a lot like C++ and in conjunction with the Runtime and Base-Class Libraries it gives you a lot of low-level functionality
+
+Discuss this post on Hacker News, /r/programming, /r/dotnet or /r/csharp
+
+Further Reading
+Patterns for high-performance C#. by Federico Andres Lois
+Performance Quiz #6 — Chinese/English Dictionary reader (From 2005, 2 Microsoft bloggers have a ‘performance’ battle, C++ v. C#)
+Performance Quiz #6 — Conclusion, Studying the Space
+How much faster is C++ than C#?
+Optimizing managed C# vs. native C++ code (2005)
+The Unity ‘Burst’ Compiler:
+
+How Unity is making (a subset of) C# as fast as C++
+Unity Burst Compiler: Performance Optimization Made Easy
+Daily Pathtracer Part 3: C# & Unity & Burst
+C++, C# and Unity
+Deep Dive into the Burst Compiler - Unite LA
