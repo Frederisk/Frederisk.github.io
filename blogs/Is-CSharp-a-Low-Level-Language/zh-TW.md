@@ -223,25 +223,27 @@ bool Compiler::IsTargetIntrinsic(CorInfoIntrinsics intrinsicId)
 
 自「.NET Standard 2.1」起，常見的數學函式現在都有了其特定的 `float` 實作並位於 `System.MathF` 類別中。對於此 API 及其實作的更多資料可參見：
 
-New API for single-precision math
-Adding single-precision math functions
-Provide a set of unit tests over the new single-precision math APIs
-System.Math and System.MathF should be implemented in managed code, rather than as FCALLs to the C runtime
-Moving Math.Abs(double) and Math.Abs(float) to be implemented in managed code.
-Design and process for adding platform dependent intrinsics to .NET
+- 單精度數學的新 API
+- 增加單精度數學函式
+- 為新的單精度數學 API 提供一組單元測試
+- System.Math 與 System.MathF 應當作為受管理程式碼實作而非 C 執行期的 FCALL
+- 將 Math.Abs(double) 和 Math.Abs(float) 移動至受管理程式碼來實作
+- 向 .NET 添加平台相依內在函式的設計與處理
 
-After these changes, the C# code is ~10% slower than the C++ version:
+經歷了這些修改後，C# 程式碼比 C++ 版本的慢了約 10%。
 
-	C++ (VS C++ 2017)	.NET Framework (4.7.2)	.NET Core (2.2) TC OFF	.NET Core (2.2) TC ON
-Elapsed time (secs)	41.38	58.89	46.04	44.33
-Kernel time	0.05 (0.1%)	0.06 (0.1%)	0.14 (0.3%)	0.13 (0.3%)
-User time	41.19 (99.5%)	58.34 (99.1%)	44.72 (97.1%)	44.03 (99.3%)
-page fault #	1,119	4,749	5,776	5,661
-Working set (KB)	4,136	13,440	16,788	16,652
-Paged pool (KB)	89	172	150	150
-Non-paged pool	7	13	16	16
-Page file size (KB)	1,428	10,904	10,960	11,044
-TC = Tiered Compilation (I believe that it’ll be on by default in .NET Core 3.0)
+|                     | C++ (VS C++ 2017) | .NET Framework (4.7.2) | .NET Core (2.2) TC OFF | .NET Core (2.2) TC ON |
+| ------------------- | ----------------- | ---------------------- | ---------------------- | --------------------- |
+| Elapsed time (secs) | 41.38             | 58.89                  | 46.04                  | 44.33                 |
+| Kernel time         | 0.05 (0.1%)       | 0.06 (0.1%)            | 0.14 (0.3%)            | 0.13 (0.3%)           |
+| User time           | 41.19 (99.5%)     | 58.34 (99.1%)          | 44.72 (97.1%)          | 44.03 (99.3%)         |
+| page fault #        | 1,119             | 4,749                  | 5,776                  | 5,661                 |
+| Working set (KB)    | 4,136             | 13,440                 | 16,788                 | 16,652                |
+| Paged pool (KB)     | 89                | 172                    | 150                    | 150                   |
+| Non-paged pool      | 7                 | 13                     | 16                     | 16                    |
+| Page file size (KB) | 1,428             | 10,904                 | 10,960                 | 11,044                |
+
+TC = 分層編譯（Tiered Compilation）（我相信這在 .NET Core 3.0 會成為默認功能）
 
 For completeness, here’s the results across several runs:
 
