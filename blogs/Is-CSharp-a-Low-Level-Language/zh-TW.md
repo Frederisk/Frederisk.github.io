@@ -1,6 +1,6 @@
 # C#是低階語言嗎？
 
-[![en-US-Source](https://img.shields.io/badge/lang-en--US--Source-blue)](https://mattwarren.org/2019/03/01/Is-CSharp-a-low-level-language/)[![zh-TW](https://img.shields.io/badge/lang-zh--TW--55%-yellow)](./zh-TW)
+[![en-US-Source](https://img.shields.io/badge/lang-en--US--Source-blue)](https://mattwarren.org/2019/03/01/Is-CSharp-a-low-level-language/)[![zh-TW](https://img.shields.io/badge/lang-zh--TW--60%-yellow)](./zh-TW)
 
 我是 [Fabien Sanglard](http://fabiensanglard.net/) 所做一切的忠實粉絲，我喜歡他的部落格並且從頭到尾讀了他的[兩本](http://fabiensanglard.net/gebbdoom/index.html)[著作](http://fabiensanglard.net/gebbwolf3d/index.html)（對於他的書的更多資訊，可以參考最近的 [Hansleminutes podcast](https://hanselminutes.com/666/episode-666-game-engine-black-book-doom-with-fabien-sanglard)）。
 
@@ -245,30 +245,33 @@ bool Compiler::IsTargetIntrinsic(CorInfoIntrinsics intrinsicId)
 
 TC = 分層編譯（Tiered Compilation）（我相信這在 .NET Core 3.0 會成為默認功能）
 
-For completeness, here’s the results across several runs:
+為完整性起見，以下列出了多次運行的結果：
 
-Run	C++ (VS C++ 2017)	.NET Framework (4.7.2)	.NET Core (2.2) TC OFF	.NET Core (2.2) TC ON
-TestRun-01	41.38	58.89	46.04	44.33
-TestRun-02	41.19	57.65	46.23	45.96
-TestRun-03	42.17	62.64	46.22	48.73
-Note: the difference between .NET Core and .NET Framework is due to the lack of the MathF API in .NET Framework v4.7.2, for more info see Support .Net Framework (4.8?) for netstandard 2.1.
+| Run        | C++ (VS C++ 2017) | .NET Framework (4.7.2) | .NET Core (2.2) TC OFF | .NET Core (2.2) TC ON |
+| ---------- | ----------------- | -------------------- -- | ---------------------- | --------------------- |
+| TestRun-01 | 41.38             | 58.89                  | 46.04                  | 44.33                 |
+| TestRun-02 | 41.19             | 57.65                  | 46.23                  | 45.96                 |
+| TestRun-03 | 42.17             | 62.64                  | 46.22                  | 48.73                 |
 
-Further performance improvements
-However I’m sure that others can do better!
+注意：.NET Core 與 .NET Framework 之間的差異是由後者缺乏 MathF API 導致的，對於有關此的詳細資料可參見支援 netstandard 2.1 的 .Net Framework (4.8?)。
 
-If you’re interested in trying to close the gap the C# code is available. For comparison, you can see the assembly produced by the C++ compiler courtesy of the brilliant Compiler Explorer.
+## 更進一步的效能提升
 
-Finally, if it helps, here’s the output from the Visual Studio Profiler showing the ‘hot path’ (after the perf improvement described above):
+不過我相信會有人做得更好！
 
+如果你有興趣嘗試縮小差距，那麼 C# 程式碼在這兒可供使用。你也可以透過出色的編譯管理員查閱 C++ 所產生的組合語言來去做對比。
 
-Call Tree (tidied up) - Report20190221-2029-After-MathF-Changes-NetCore.png
+最後，或許有用的是 Visual Studio Profiler 所展示的（在經過上述效能改進之後）對「hot path」的輸出。
 
-Is C# a low-level language?
+![<!--TODO:-->](./assets/Call-Tree-(tidied-up)-Report20190221-2029-After-MathF-Changes-NetCore.png)
+
+## C#是低階語言嗎？
+
 Or more specifically:
 
 What language features of C#/F#/VB.NET or BCL/Runtime functionality enable ‘low-level’* programming?
 
-* yes, I know ‘low-level’ is a subjective term 😊
+\* yes, I know ‘low-level’ is a subjective term :smile:
 
 Note: Any C# developer is going to have a different idea of what ‘low-level’ means, these features would be taken for granted by C++ or Rust programmers.
 
