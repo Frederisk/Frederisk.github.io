@@ -1,4 +1,4 @@
-# C#是低階語言嗎？
+# C# 是低階語言嗎？
 
 [![en-US-Source](https://img.shields.io/badge/lang-en--US--Source-blue)](https://mattwarren.org/2019/03/01/Is-CSharp-a-low-level-language/)[![zh-TW](https://img.shields.io/badge/lang-zh--TW--60%-yellow)](./zh-TW)
 
@@ -6,7 +6,7 @@
 
 在最近，他寫了一篇精彩的文章，在其中他[破譯了一張明信片大小的光線追蹤器](http://fabiensanglard.net/postcard_pathtracer/index.html)，解開了其中受混淆的程式碼並且對其涉及的數學原理給出了精彩的解釋。我真心推薦你們花點時間去讀一下！
 
-不過，這也讓我開始思考，**有無將 C++ 程式碼移植至 C# 的可能？**
+不過，這也讓我開始思考，**有沒有將 C++ 程式碼移植至 C# 的可能？**
 
 其中一部分的原因是由於我的[日常工作](https://raygun.com/platform/apm)，我不得不編寫大量的 C++，並且我發現我開始有點生疏了，所以我想這樣做可能對我有所助益！
 
@@ -265,7 +265,7 @@ TC = 分層編譯（Tiered Compilation）（我相信這在 .NET Core 3.0 會成
 
 ![<!--TODO:-->](./assets/Call-Tree-(tidied-up)-Report20190221-2029-After-MathF-Changes-NetCore.png)
 
-## C#是低階語言嗎？
+## 那 C# 是低階語言嗎？
 
 Or more specifically:
 
