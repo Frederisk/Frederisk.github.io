@@ -267,27 +267,28 @@ TC = 分層編譯（Tiered Compilation）（我相信這在 .NET Core 3.0 會成
 
 ## 那 C# 是低階語言嗎？
 
-Or more specifically:
+或者更確切些說：
 
-What language features of C#/F#/VB.NET or BCL/Runtime functionality enable ‘low-level’* programming?
+> C#/F#/VB.NET 或者 BCL/執行期功能的哪些特徵可支援「低階」*程式。
 
-\* yes, I know ‘low-level’ is a subjective term :smile:
+\* 嗯，我知道「低階」是個主觀的術語😊
 
-Note: Any C# developer is going to have a different idea of what ‘low-level’ means, these features would be taken for granted by C++ or Rust programmers.
+**注意**：任何 C# 開發者都會對「低階」的含意有著不同的理解，C++ 或 Rust 程式設計師會認為這些功能是理所當然的。
 
-Here’s the list that I came up with:
+這是我所列出的清單：
 
-ref returns and ref locals
-“tl;dr Pass and return by reference to avoid large struct copying. It’s type and memory safe. It can be even faster than unsafe!”
-Unsafe code in .NET
-“The core C# language, as defined in the preceding chapters, differs notably from C and C++ in its omission of pointers as a data type. Instead, C# provides references and the ability to create objects that are managed by a garbage collector. This design, coupled with other features, makes C# a much safer language than C or C++.”
-Managed pointers in .NET
-“There is, however, another pointer type in CLR – a managed pointer. It could be defined as a more general type of reference, which may point to other locations than just the beginning of an object.”
-C# 7 Series, Part 10: Span<T> and universal memory management
-“System.Span<T> is a stack-only type (ref struct) that wraps all memory access patterns, it is the type for universal contiguous memory access. You can think the implementation of the Span contains a dummy reference and a length, accepting all 3 memory access types."
-Interoperability (C# Programming Guide)
-“The .NET Framework enables interoperability with unmanaged code through platform invoke services, the System.Runtime.InteropServices namespace, C++ interoperability, and COM interoperability (COM interop).”
-However, I know my limitations and so I asked on twitter and got a lot more replies to add to the list:
+- ref 回傳與 ref 局部變數
+  - 「一言蔽之，透過引用的傳遞與回傳避免大型結構的複製。其型式與記憶體都是安全的。甚至可能會比 `unsafe` 的還要**快**！」
+- .NET中的不安全程式碼
+  - 「如同之前的章節所定義的，核心 C# 語言與 C 和 C++ 顯著的不同之處在於前者省略了指標作為資料的類別。與此對應的是 C# 提供了引用與建立由垃圾收集器管理的物件的能力。這種設計與其他功能相結合使得 C# 成為了比 C 或者 C++ 更安全的語言。」
+- .NET 中的受管理指標
+  - 「不過，CLR 中還有另一種指標類型：受管理指標。這種指標可定義為更為通用的引用型別，而且可能會指向其他位置而不僅是物件的開頭。」
+- C# 7 系列，第 10 部分： `Span<T>` 以及通用記憶體管理
+  - 「`System.Span<T>` 是一種僅堆疊的型別（`ref struct`），其包裝了所有的記憶體存取形式並且是通用的記憶體存取類型。你可以理解為 `Span` 的實作包含有一個虛引用和長度，並接受所有的 3 種記憶體存取類別。」
+- 互通性（C# 程式設計手冊）
+  - 「.NET Framework 透過平台引動服務、`System.Runtime.InteropServices` 名稱空間、C++ 互通性以及 COM 互通性（COM interop）實現與非受管理程式碼的互通性」
+
+不過我知道我自己的侷限所以我在 twitter 上詢問並得到了更多的回應並將其添加在列表中：
 
 Ben Adams “Platform intrinsics (CPU instruction access)”
 Marc Gravell “SIMD via Vector (which mixes well with Span) is *fairly* low; .NET Core should (soon?) offer direct CPU intrinsics for more explicit usage targeting particular CPU ops"
