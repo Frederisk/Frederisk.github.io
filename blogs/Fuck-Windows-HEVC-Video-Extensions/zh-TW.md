@@ -1,3 +1,7 @@
+---
+lang: zh-TW
+---
+
 # 去他媽的 HEVC 視訊延伸模組
 
 貌似由於種種原因，或許是因為 HEVC 又在搞授權費用那一套。總之免費的[裝置製造商的 HEVC 視訊延伸模組](https://apps.microsoft.com/detail/9n4wgh0z6vhq)已經不可用，不然就當[花 0.99 美元](https://apps.microsoft.com/detail/9nmzlz57r3t7)的盤子。本著有免費為何浪費錢的原則，收集到了該軟體下架前的 package，直接開啟安裝即可，立省 100%。

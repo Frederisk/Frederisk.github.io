@@ -1,3 +1,7 @@
+---
+lang: zh-TW
+---
+
 # C# 是低階語言嗎？
 
 [![en-US-Source](https://img.shields.io/badge/lang-en--US--Source-blue)](https://mattwarren.org/2019/03/01/Is-CSharp-a-low-level-language/)[![zh-TW](https://img.shields.io/badge/lang-zh--TW-brightgreen)](./zh-TW)
