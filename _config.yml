@@ -1,4 +1,4 @@
 ---
-remote_theme: Frederisk/Midnight-Enhanced@v0.2.0
+remote_theme: Frederisk/Midnight-Enhanced
 plugins:
   - jekyll-remote-theme
