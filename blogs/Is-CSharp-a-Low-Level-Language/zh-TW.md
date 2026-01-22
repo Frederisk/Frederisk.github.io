@@ -1,6 +1,6 @@
 # C# 是低階語言嗎？
 
-[![en-US-Source](https://img.shields.io/badge/lang-en--US--Source-blue)](https://mattwarren.org/2019/03/01/Is-CSharp-a-low-level-language/)[![zh-TW](https://img.shields.io/badge/lang-zh--TW--60%25-yellow)](./zh-TW)
+[![en-US-Source](https://img.shields.io/badge/lang-en--US--Source-blue)](https://mattwarren.org/2019/03/01/Is-CSharp-a-low-level-language/)[![zh-TW](https://img.shields.io/badge/lang-zh--TW-brightgreen)](./zh-TW)
 
 我是 [Fabien Sanglard](http://fabiensanglard.net/) 所做一切的忠實粉絲，我喜歡他的部落格並且從頭到尾讀了他的[兩本](http://fabiensanglard.net/gebbdoom/index.html)[著作](http://fabiensanglard.net/gebbwolf3d/index.html)（對於他的書的更多資訊，可以參考最近的 [Hansleminutes podcast](https://hanselminutes.com/666/episode-666-game-engine-black-book-doom-with-fabien-sanglard)）。
 
@@ -269,7 +269,7 @@ TC = 分層編譯（Tiered Compilation）（我相信這在 .NET Core 3.0 會成
 
 或者更確切些說：
 
-> C#/F#/VB.NET 或者 BCL/執行期功能的哪些特徵可支援「低階」*程式。
+> C#/F#/VB.NET 或者 BCL/執行期功能的哪些特徵可支援「低階」\*程式。
 
 \* 嗯，我知道「低階」是個主觀的術語😊
 
@@ -288,41 +288,48 @@ TC = 分層編譯（Tiered Compilation）（我相信這在 .NET Core 3.0 會成
 - 互通性（C# 程式設計手冊）
   - 「.NET Framework 透過平台引動服務、`System.Runtime.InteropServices` 名稱空間、C++ 互通性以及 COM 互通性（COM interop）實現與非受管理程式碼的互通性」
 
-不過我知道我自己的侷限所以我在 twitter 上詢問並得到了更多的回應並將其添加在列表中：
+不過我知道我自己的侷限所以我在 twitter 上詢問並得到了更多的回應並將其添加在列表中：「」
 
-Ben Adams “Platform intrinsics (CPU instruction access)”
-Marc Gravell “SIMD via Vector (which mixes well with Span) is *fairly* low; .NET Core should (soon?) offer direct CPU intrinsics for more explicit usage targeting particular CPU ops"
-Marc Gravell “powerful JIT: things like range elision on arrays/spans, and the JIT using per-struct-T rules to remove huge chunks of code that it knows can’t be reached for that T, or on your particular CPU (BitConverter.IsLittleEndian, Vector.IsHardwareAccelerated, etc)”
-Kevin Jones “I would give a special shout-out to the MemoryMarshal and Unsafe classes, and probably a few other things in the System.Runtime.CompilerServices namespace.”
-Theodoros Chatzigiannakis “You could also include __makeref and the rest.”
-damageboy “Being able to dynamically generate code that fits the expected input exactly, given that the latter will only be known at runtime, and might change periodically?”
-Robert Haken “dynamic IL emission”
-Victor Baybekov “Stackalloc was not mentioned. Also ability to write raw IL (not dynamic, so save on a delegate call), e.g. to use cached ldftn and call them via calli. VS2017 has a proj template that makes this trivial via extern methods + MethodImplOptions.ForwardRef + ilasm.exe rewrite.”
-Victor Baybekov “Also MethodImplOptions.AggressiveInlining “does enable ‘low-level’ programming” in a sense that it allows to write high-level code with many small methods and still control JIT behavior to get optimized result. Otherwise uncomposable 100s LOCs methods with copy-paste…”
-Ben Adams “Using the same calling conventions (ABI) as the underlying platform and p/invokes for interop might be more of a thing though?”
-Victor Baybekov “Also since you mentioned #fsharp - it does have inline keyword that does the job at IL level before JIT, so it was deemed important at the language level. C# lacks this (so far) for lambdas which are always virtual calls and workarounds are often weird (constrained generics).”
-Alexandre Mutel “new SIMD intrinsics, Unsafe Utility class/IL post processing (e.g custom, Fody…etc.). For C#8.0, upcoming function pointers…”
-Alexandre Mutel “related to IL, F# has support for direct IL within the language for example”
-OmariO “BinaryPrimitives. Low-level but safe.” (https://docs.microsoft.com/en-us/dotnet/api/system.buffers.binary.binaryprimitives?view=netcore-3.0)
-Kouji (Kozy) Matsui “How about native inline assembler? It’s difficult for how relation both toolchains and runtime, but can replace current P/Invoke solution and do inlining if we have it.”
-Frank A. Krueger “Ldobj, stobj, initobj, initblk, cpyblk.”
-Konrad Kokosa “Maybe Thread Local Storage? Fixed Size Buffers? unmanaged constraint and blittable types should be probably mentioned:)”
-Sebastiano Mandalà “Just my two cents as everything has been said: what about something as simple as struct layout and how padding and memory alignment and order of the fields may affect the cache line performance? It’s something I have to investigate myself too”
-Nino Floris “Constants embedding via readonlyspan, stackalloc, finalizers, WeakReference, open delegates, MethodImplOptions, MemoryBarriers, TypedReference, varargs, SIMD, Unsafe.AsRef can coerce struct types if layout matches exactly (used for a.o. TaskAwaiter and its version)"
-So in summary, I would say that C# certainly lets you write code that looks a lot like C++ and in conjunction with the Runtime and Base-Class Libraries it gives you a lot of low-level functionality
+- [Ben Adams](https://twitter.com/ben_a_adams/status/1097876408775442432)「平台內建函式（CPU 指令存取）」
+- [Marc Gravell](https://twitter.com/marcgravell/status/1097877192745336837)「透過向量實現的 SIMD（與 Span 配合效果良好）的開銷*相當*低；.NET Core 理應（在不久後？）提供直接CPU內建函式，以更明確地針對特定CPU運算指令進行調用」
+- [Marc Gravell](https://twitter.com/marcgravell/status/1097878384934863872)「強大的 JIT：像是 array/span 的範圍省略，以及 JIT 會嘗試移除已知的無法被存取的大量程式碼區塊，使用類似於專屬 struct T 的規則或者針對某些特定 CPU（BitConverter.IsLittleEndian、Vector.IsHardwareAccelerated 等等）」
+- [Kevin Jones](https://twitter.com/vcsjones/status/1097877294864056320)「我得特別提一下 `MemoryMarshal` 與 `Unsafe` 類別，以及 `System.Runtime.CompilerServices` 名稱空間中的其他一些東西。」
+- [Theodoros Chatzigiannakis](https://twitter.com/Pessimizations/status/1097877381296066560)「`__makeref` 以及一些其他東西也值得納入。」
+- [damageboy](https://twitter.com/damageboy/status/1097877247120326658)「能否動態生成精確匹配預期輸入的程式碼？畢竟輸入內容僅在執行時才確定，且可能定期變動？」
+- [Robert Haken](https://twitter.com/RobertHaken/status/1097880613988851712)「動態 IL 生成」
+- [Victor Baybekov](https://twitter.com/buybackoff/status/1097885830364966914)「沒提到 stackalloc。另外，也可以撰寫原始的 IL（非動態的，可以此省略委派呼叫），比方說使用快取的 `ldftn` 並透過 `calli` 呼叫。VS2017 的 proj 範本透過 extern 方法 + MethodImplOptions.ForwardRef + ilasm.exe 重寫的方式，使這種操作變簡單了。」
+- [Victor Baybekov](https://twitter.com/buybackoff/status/1097887318806093824)「MethodImplOptions.AggressiveInlining 確實能實現某種意義上的『低階程式設計』，它允許編寫包含大量小型方法的高階程式碼，同時仍能控制 JIT 行為以獲得最佳化結果。否則將面臨數百行無法組合的方法，只能靠複製貼上……」
+- [Ben Adams](https://twitter.com/ben_a_adams/status/1097885533508980738)「採用底層平台相同的呼叫慣例（ABI）並透過 p/invoke 實現互通性或許更有意義？」
+- [Victor Baybekov](https://twitter.com/buybackoff/status/1097893756672581632)「既然提到了 #fsharp 的話，這語言確實有 `inline` 關鍵字，可以在 JIT 編譯之前在 IL 層就完成相關工作，因此在語言層面上被認為非常重要。C# （到目前為止）沒有這個功能，所以其 lambda 表達式總是會以虛擬呼叫，而替代方案通常比較奇怪（例如使用約束泛型）。」
+- [Alexandre Mutel](https://twitter.com/xoofx/status/1097895771142320128)「新 SIMD 內建函數、Unsafe 工具類/IL 後處理（如自訂、Fody 等）。C#8.0 即將推出的函數指標……」
+- [Alexandre Mutel](https://twitter.com/xoofx/status/1097896059236466689)「與 IL 相關，比方說 F# 語言本身就支援直接操作 IL」
+- [OmariO](https://twitter.com/0omari0/status/1097916897952235520)「BinaryPrimitives。低階但安全。（<https://docs.microsoft.com/en-us/dotnet/api/system.buffers.binary.binaryprimitives?view=netcore-3.0>）」
+- [Kouji (Kozy) Matsui](https://twitter.com/kozy_kekyo/status/1097982126190878720)「原生內聯組譯器如何？雖因工具鏈與執行階段關聯性較難實現，但若具備此功能可取代現行 P/Invoke 方案並執行內聯。」
+- [Frank A. Krueger](https://twitter.com/praeclarum/status/1098002275891642368)「Ldobj、stobj、initobj、initblk、cpyblk。」
+- [Konrad Kokosa](https://twitter.com/konradkokosa/status/1098155819340828672)「或許該提及執行緒局部儲存？固定大小緩衝區？非託管約束與 Blittable 類型也值得一提 :\)」
+- [Sebastiano Mandalà](https://twitter.com/sebify/status/1098161110476312582)「既然各位都說了，容我補充兩點：像結構體佈局這般基礎的概念呢？填充、記憶體對齊與欄位順序如何影響快取線效能？這也是我必須自行探究的課題」
+- [Nino Floris](https://twitter.com/NinoFloris/status/1098433286899146753)「透過 readonlyspan、 stackalloc、 finalizers、 WeakReference、 open delegates、 MethodImplOptions、 MemoryBarriers、 TypedReference、 varargs、 SIMD、 Unsafe.AsRef 嵌入常數，如果佈局完全匹配，就可以強制轉換結構體類型（用於 TaskAwaiter 及其版本等的場景）」
 
-Discuss this post on Hacker News, /r/programming, /r/dotnet or /r/csharp
+---
 
-Further Reading
-Patterns for high-performance C#. by Federico Andres Lois
-Performance Quiz #6 — Chinese/English Dictionary reader (From 2005, 2 Microsoft bloggers have a ‘performance’ battle, C++ v. C#)
-Performance Quiz #6 — Conclusion, Studying the Space
-How much faster is C++ than C#?
-Optimizing managed C# vs. native C++ code (2005)
-The Unity ‘Burst’ Compiler:
+**總而言之，我會說 C# 確實讓你能夠撰寫看起來很像 C++ 的程式碼，並且結合執行期與基礎類別庫，它為你提供了大量的低階功能。**
 
-How Unity is making (a subset of) C# as fast as C++
-Unity Burst Compiler: Performance Optimization Made Easy
-Daily Pathtracer Part 3: C# & Unity & Burst
-C++, C# and Unity
-Deep Dive into the Burst Compiler - Unite LA
+---
+
+可在 [Hacker News](https://news.ycombinator.com/item?id=19280049)、[/r/programming](https://old.reddit.com/r/programming/comments/aw4ig7/is_c_a_lowlevel_language/?sort=top)、[/r/dotnet](https://old.reddit.com/r/dotnet/comments/aw4ilf/is_c_a_lowlevel_language/?sort=top) 或 [/r/csharp](https://old.reddit.com/r/csharp/comments/aw4ij6/is_c_a_lowlevel_language/?sort=top) 上討論此文章。
+
+## 進一步閱讀
+
+- [高效能 C# 的設計模式。](https://www.youtube.com/watch?v=7GTpwgsmHgU)作者 [Federico Andres Lois](https://twitter.com/federicolois)
+- [效能測驗 #6：中英字典讀取器](https://blogs.msdn.microsoft.com/ricom/2005/05/10/performance-quiz-6-chineseenglish-dictionary-reader/)（來自 2005 年，兩位 Microsoft 博客作者進行了一場「效能」大戰，C++ 對 C#）
+- [效能測驗 #6：結論，研究空間](https://blogs.msdn.microsoft.com/ricom/2005/05/20/performance-quiz-6-conclusion-studying-the-space/)
+- [C++ 比 C# 快多少？](https://stackoverflow.com/a/138406)
+- [優化受管理的 C# 與原生的 C++ 程式碼](https://blogs.msdn.microsoft.com/jonathanh/2005/05/20/optimizing-managed-c-vs-native-c-code/)（2005 年）
+
+Unity 的『Burst』編譯器：
+
+- [Unity 如何使（C# 的子集）達到與 C++ 一樣的速度](https://blogs.unity3d.com/2019/02/26/on-dots-c-c/)
+- [Unity Burst 編譯器：輕鬆實現效能優化](http://infalliblecode.com/unity-burst-compiler/)
+- [日常光線追蹤器 第 3 部分：C# & Unity & Burst](http://aras-p.info/blog/2018/03/28/Daily-Pathtracer-Part-3-CSharp-Unity-Burst/)
+- [C++、C# 與 Unity](https://lucasmeijer.com/posts/cpp_unity/)
+- [深入探討 Burst 編譯器 - Unite LA](https://www.youtube.com/watch?v=QkM6zEGFhDY)
